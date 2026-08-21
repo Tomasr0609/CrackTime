@@ -1,0 +1,35 @@
+# R
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user
+.Rapp.history
+*.Rproj
+.rs.userprefs
+
+# renv
+renv/library/
+renv/.gitignore
+renv/local/
+renv/cache/
+renv/staging/
+renv/sandbox/
+
+# Shinylive / build output
+docs/_tmp/
+*.wasm.bak
+
+# Node (si se usa tooling auxiliar de build)
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Vercel
+.vercel/
+
+# Logs
+*.log

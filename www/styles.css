@@ -1,0 +1,405 @@
+/* =============================================================================
+   CrackTime — estilos custom (Fase 5)
+   Identidad: "laboratorio de seguridad" oscuro con acento menta neón.
+   Mobile-first: columna única centrada, max-width 640px.
+   ============================================================================= */
+
+/* --- Tipografías locales (sin descarga en runtime: webR no tiene curl) --- */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/Inter-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fonts/Inter-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/Inter-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("fonts/Space-Grotesk-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/Space-Grotesk-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/JetBrains-Mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/JetBrains-Mono-700.woff2") format("woff2");
+}
+
+:root {
+  --bg: #0b0f14;
+  --surface: #141a21;
+  --surface-2: #1b232d;
+  --border: #232d38;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --brand: #00e5a0;
+  --brand-dim: rgba(0, 229, 160, 0.12);
+  --info: #58a6ff;
+  --danger: #ff5d5d;
+  --warning: #ffb020;
+  --success: #58d68d;
+  --strong: #00e5a0;
+  --radius: 14px;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* --- Contenedor general (mobile-first) --- */
+.contenedor {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* --- Cabecera --- */
+.cabecera { text-align: center; padding: 8px 0 4px; }
+.titulo {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 8vw, 2.6rem);
+  letter-spacing: 0.02em;
+  margin: 0;
+  background: linear-gradient(90deg, var(--brand), #7cffd0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.subtitulo {
+  color: var(--muted);
+  font-size: 0.98rem;
+  margin: 6px 0 0;
+}
+
+/* --- Banner de privacidad (siempre visible) --- */
+.banner-privacidad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--brand-dim);
+  border: 1px solid rgba(0, 229, 160, 0.35);
+  color: #c7ffe9;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.banner-privacidad i { color: var(--brand); font-size: 1.1rem; }
+
+/* --- Tarjetas --- */
+.tarjeta {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.tarjeta-titulo {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+/* --- Input de contraseña --- */
+.fila-input { display: flex; flex-direction: column; gap: 10px; }
+.fila-input .form-floating > .form-control,
+.fila-input .form-label { color: var(--text); }
+#password {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 1.05rem;
+  font-family: "JetBrains Mono", monospace;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+#password::placeholder { color: #5c6773; }
+#password:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-dim);
+  outline: none;
+}
+.fila-input .form-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+}
+.fila-input .form-check-input {
+  background-color: var(--surface-2);
+  border-color: var(--border);
+  cursor: pointer;
+}
+.fila-input .form-check-input:checked {
+  background-color: var(--brand);
+  border-color: var(--brand);
+}
+
+/* --- Indicador de fortaleza --- */
+.fortaleza { margin-top: 16px; }
+.contenedor-fortaleza {
+  height: 10px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.barra-fortaleza {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+              background 0.45s ease;
+}
+.fuerza-chip {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+.fuerza-chip::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.fuerza-na       { color: var(--muted); background: var(--surface-2); }
+.fuerza-debil    { color: var(--danger); background: rgba(255, 93, 93, 0.12); }
+.fuerza-media    { color: var(--warning); background: rgba(255, 176, 32, 0.12); }
+.fuerza-fuerte   { color: var(--success); background: rgba(88, 214, 141, 0.12); }
+.fuerza-muyfuerte { color: var(--strong); background: var(--brand-dim); }
+
+/* --- Hero de tiempo --- */
+.tarjeta-resultado { text-align: center; }
+.hero-tiempo {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.4rem, 12vw, 4rem);
+  line-height: 1.1;
+  margin: 4px 0 6px;
+  color: var(--text);
+  transition: transform 0.25s ease, color 0.25s ease;
+  word-break: break-word;
+}
+.hero-nota { color: var(--muted); font-size: 0.9rem; margin-bottom: 14px; }
+
+/* Escenarios */
+#escenario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+#escenario .form-check {
+  display: inline-flex;
+  align-items: center;
+  padding-left: 0;
+  margin: 0;
+}
+#escenario .form-check-label {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+#escenario .form-check-input { display: none; }
+#escenario .form-check-input:checked + .form-check-label {
+  background: var(--brand-dim);
+  border-color: var(--brand);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+/* Detalles técnicos */
+.detalles-tecnicos { margin-top: 16px; }
+.detalles-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.detalles-fila span {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-family: "JetBrains Mono", monospace;
+}
+.detalles-fila b { color: var(--text); }
+.nota-unicode {
+  display: block;
+  width: 100%;
+  color: var(--warning);
+  border-color: rgba(255, 176, 32, 0.35);
+}
+
+/* --- Dato curioso (tarjeta con ícono) --- */
+.tarjeta-dato {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  animation: subir 0.4s ease both;
+}
+.dato-icono {
+  flex-shrink: 0;
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  background: var(--brand-dim);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+.dato-texto {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* --- Sugerencias --- */
+#panel-sugerencias .tarjeta-titulo { margin-bottom: 6px; }
+.sugerencia-vacia { color: var(--muted); padding: 12px 0; font-size: 0.9rem; }
+.sugerencia {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  animation: subir 0.45s ease both;
+}
+.sugerencia:last-child { border-bottom: none; }
+.sugerencia-num {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--brand);
+  font-weight: 700;
+  font-family: "Space Grotesk", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+.sugerencia-cuerpo { flex: 1; min-width: 0; }
+.sugerencia-cuerpo strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.sugerencia-cuerpo p { color: var(--muted); font-size: 0.88rem; line-height: 1.5; margin: 4px 0 8px; }
+.sugerencia-antes-despues {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+.badge-antes, .badge-despues {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-family: "JetBrains Mono", monospace;
+}
+.badge-antes  { background: rgba(255, 93, 93, 0.12); color: var(--danger); }
+.badge-despues { background: var(--brand-dim); color: var(--brand); }
+.sugerencia-antes-despues i { color: var(--muted); font-size: 0.7rem; }
+.sugerencia-nota { margin-top: 6px; color: var(--muted); font-size: 0.78rem; font-style: italic; }
+.sugerencia-diccionario .sugerencia-num { color: var(--danger); border-color: rgba(255, 93, 93, 0.4); }
+.sugerencia-leetspeak .sugerencia-num { color: var(--warning); border-color: rgba(255, 176, 32, 0.4); }
+.sugerencia-fuerte .sugerencia-num { color: var(--brand); }
+
+/* --- Compartir --- */
+.compartir { text-align: center; }
+.btn-compartir {
+  background: var(--brand);
+  color: #06120d;
+  border: none;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 12px 22px;
+  font-size: 0.95rem;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.btn-compartir:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--brand-dim); color: #06120d; }
+.btn-compartir:active { transform: translateY(0); }
+.compartir-nota { margin-top: 8px; color: var(--brand); font-size: 0.85rem; min-height: 1.2em; }
+
+/* --- Pie --- */
+.pie { color: var(--muted); font-size: 0.75rem; line-height: 1.6; text-align: center; padding: 8px 16px 0; }
+
+/* --- Animaciones --- */
+@keyframes subir {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Responsive (desktop: más aire) --- */
+@media (min-width: 768px) {
+  .contenedor { padding: 48px 24px 64px; gap: 20px; }
+  .tarjeta { padding: 26px; }
+  .fila-input { flex-direction: row; align-items: end; }
+  .fila-input #password { flex: 1; }
+  .fila-input .form-check { margin-bottom: 12px; white-space: nowrap; }
+}

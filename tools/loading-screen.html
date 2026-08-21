@@ -1,0 +1,100 @@
+<style>
+/* CrackTime — pantalla de carga estática (visible desde el primer render) */
+#cracktime-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background: radial-gradient(1200px 600px at 50% -10%, #0e1a22 0%, #0b0f14 60%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 24px;
+  box-sizing: border-box;
+  transition: opacity 0.45s ease, visibility 0.45s;
+}
+#cracktime-loader.oculto { opacity: 0; visibility: hidden; pointer-events: none; }
+.ct-logo {
+  font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.2rem, 9vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #00e5a0, #7cffd0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: ct-pulso 1.6s ease-in-out infinite;
+}
+.ct-sub {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  color: #8b949e;
+  font-size: 0.95rem;
+  text-align: center;
+  max-width: 340px;
+}
+.ct-bar {
+  width: min(280px, 80%);
+  height: 8px;
+  background: #1b232d;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #232d38;
+}
+.ct-bar-fill {
+  height: 100%;
+  width: 30%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #00e5a0, #7cffd0);
+  animation: ct-carga 1.4s ease-in-out infinite;
+}
+.ct-status {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 0.8rem;
+  color: #00e5a0;
+  letter-spacing: 0.04em;
+  min-height: 1.2em;
+}
+.ct-status::after { content: "▍"; animation: ct-parpadeo 0.9s steps(2) infinite; }
+@keyframes ct-pulso { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes ct-carga { 0% { transform: translateX(-110%); } 100% { transform: translateX(360%); } }
+@keyframes ct-parpadeo { 0% { opacity: 0; } 100% { opacity: 1; } }
+</style>
+<div id="cracktime-loader">
+  <div class="ct-logo">CrackTime</div>
+  <div class="ct-sub">Cargando el motor de fuerza bruta en tu navegador…<br>Todo ocurre localmente: tu contraseña nunca sale de acá.</div>
+  <div class="ct-bar"><div class="ct-bar-fill"></div></div>
+  <div class="ct-status" id="ct-status">iniciando motor</div>
+</div>
+<script>
+(function () {
+  var estados = [
+    "iniciando motor",
+    "descargando runtime de R a WebAssembly",
+    "compilando WebAssembly",
+    "cargando paquetes",
+    "afinando diccionarios",
+    "calibrando velocidades de ataque"
+  ];
+  var i = 0;
+  var st = document.getElementById("ct-status");
+  setInterval(function () { if (st) { i = (i + 1) % estados.length; st.textContent = estados[i]; } }, 2200);
+  function appLista() {
+    var f = document.querySelector("iframe.app-frame");
+    if (!f || !f.contentDocument || !f.contentDocument.body) return false;
+    try { return f.contentDocument.getElementById("password") !== null; }
+    catch (e) { return false; }
+  }
+  function ocultar() {
+    var s = document.getElementById("cracktime-loader");
+    if (s) s.classList.add("oculto");
+  }
+  var t0 = Date.now();
+  var iv = setInterval(function () {
+    var viewer = document.querySelector(".shinylive-viewer");
+    var errored = viewer && viewer.querySelector(".loading-wrapper-error") !== null;
+    if (appLista() || errored || Date.now() - t0 > 60000) { ocultar(); clearInterval(iv); }
+  }, 250);
+})();
+</script>

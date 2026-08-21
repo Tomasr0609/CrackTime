@@ -1,0 +1,42 @@
+# Build automático a Shinylive: en cada push a main se regenera docs/ desde
+# el código fuente (R/, www/, app.R) y se commitea el build actualizado.
+# Vercel despliega el directorio docs/ (ver vercel.json), así que el build
+# debe estar siempre al día en el repo.
+#
+# Loop-safety: app.json es determinista (sin timestamps), por lo que si el
+# código fuente no cambió, el commit-back no genera ningún commit nuevo.
+name: Build Shinylive
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.6.1"
+          use-public-rspm: true
+
+      - name: Restore renv
+        run: Rscript -e 'install.packages("renv"); renv::restore()'
+
+      - name: Build Shinylive export
+        run: Rscript tools/build-shinylive.R
+
+      - name: Commit build
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "build: regenerar docs/ (Shinylive export)"
+          file_pattern: docs/
+          skip_dirty_check: false
