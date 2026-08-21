@@ -116,8 +116,8 @@ ui <- function() {
       # Banner de privacidad (siempre visible, arriba)
       div(class = "banner-privacidad",
         icon("lock"),
-        span("Tu contraseña nunca se envía a ningún servidor — todo el cálculo
-              ocurre en tu navegador. Es privado de verdad, no es marketing.")),
+        span("Tu contraseña nunca se envía a ningún servidor, todo el cálculo
+              ocurre en tu navegador de manera local. Es privado de verdad.")),
 
       # Input
       div(class = "tarjeta",
@@ -143,7 +143,7 @@ ui <- function() {
 
       # Resultado principal (hero)
       div(id = "panel-resultado", class = "tarjeta tarjeta-resultado",
-        h2(class = "tarjeta-titulo", "Tiempo estimado de crackeo"),
+        h2(class = "tarjeta-titulo", "Tiempo estimado de hackeo"),
         div(class = "hero-tiempo", textOutput("tiempo_hero", inline = TRUE)),
         div(class = "hero-nota", textOutput("tiempo_nota", inline = TRUE)),
 
@@ -181,8 +181,7 @@ ui <- function() {
       # Pie
       div(class = "pie",
         p("Estimación para fuerza bruta a 10^10 intentos/segundo (GPU moderna).
-           No asume hashes lentos (bcrypt/argon2). Resultado educativo,
-           calculado 100% en tu navegador.")
+           No asume hashes lentos (bcrypt/argon2). Resultado educativo.")
       )
     )
   )
@@ -326,7 +325,15 @@ server <- function(input, output, session) {
     )
     session$sendCustomMessage("copiar-resumen", resumen)
   })
+  .timer_nota <- NULL
   observeEvent(input$copiado, {
+    # Cancelar el timer de una copia anterior (evita que un click rápido
+    # borre el mensaje antes de tiempo o se acumulen timers).
+    if (!is.null(.timer_nota)) .timer_nota()
     output$compartir_nota <- renderText("¡Resumen copiado! Pegalo donde quieras.")
+    # El mensaje desaparece solo después de 2 segundos.
+    .timer_nota <<- later::later(function() {
+      output$compartir_nota <- renderText("")
+    }, delay = 2)
   })
 }

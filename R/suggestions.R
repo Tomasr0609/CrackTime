@@ -113,7 +113,7 @@ generar_sugerencias <- function(password) {
       tipo = "simbolo",
       titulo = "Falta un símbolo",
       texto = sprintf(
-        "Agregá un símbolo (ej. «!») y el tiempo de crackeo pasa de %s a %s.",
+        "Agregá un símbolo (ej. «!») y el tiempo de hackeo pasa de %s a %s.",
         t_actual, formatear_tiempo(t_despues$segundos, t_despues$log10_segundos)
       ),
       antes = t_actual,
@@ -131,7 +131,7 @@ generar_sugerencias <- function(password) {
       tipo = "longitud",
       titulo = "Sumá más caracteres",
       texto = sprintf(
-        "Sumá 4 caracteres más y el tiempo de crackeo se multiplica por ~×%.0f (%s actual -> %s).",
+        "Sumá 4 caracteres más y el tiempo de hackeo se multiplica por ~×%.0f (%s actual -> %s).",
         factor, t_actual, formatear_tiempo(t_despues$segundos, t_despues$log10_segundos)
       ),
       antes = t_actual,
