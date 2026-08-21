@@ -278,8 +278,8 @@ server <- function(input, output, session) {
       return(tags$p(class = "detalle-na", e$nota %||% ""))
     }
     div(class = "detalles-fila",
-      span(sprintf("Entropía teórica: <b>%.1f bits</b>", e$entropia_teorica_bits)),
-      span(sprintf("Entropía ajustada: <b>%.1f bits</b>", e$entropia_ajustada_bits)),
+      span(HTML(sprintf("Entropía teórica: <b>%.1f bits</b>", e$entropia_teorica_bits))),
+      span(HTML(sprintf("Entropía ajustada: <b>%.1f bits</b>", e$entropia_ajustada_bits))),
       span(sprintf("Charset: %d", e$charset_size)),
       span(sprintf("Longitud: %d", e$longitud)),
       if (!is.null(e$nota)) span(class = "nota-unicode", e$nota)

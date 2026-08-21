@@ -9,7 +9,9 @@ out <- "www/assets/og-image.png"
 # Registrar fuentes de Windows para el render.
 windowsFonts(segoe = windowsFont("Segoe UI"))
 
-png(out, width = 1200, height = 630, res = 144)
+# res default (72): los cex de abajo están calibrados para esa densidad.
+# Con res=144 el texto renderiza al doble de píxeles y se corta en los bordes.
+png(out, width = 1200, height = 630)
 par(mar = c(0, 0, 0, 0), bg = "#0b0f14")
 
 plot.new()
@@ -27,9 +29,9 @@ rect(0, 0, 1200, 14, col = "#00e5a0", border = NA)
 rect(0, 616, 1200, 630, col = "#00e5a0", border = NA)
 
 # Marca
-text(600, 470, "CrackTime", family = "segoe", font = 2, cex = 11, col = "#00e5a0")
-text(600, 408, "¿Cuánto tardaría una computadora en descifrar tu contraseña?",
-     family = "segoe", cex = 3.4, col = "#e6edf3")
+text(600, 500, "CrackTime", family = "segoe", font = 2, cex = 11, col = "#00e5a0")
+text(600, 390, "¿Cuánto tardaría una computadora en descifrar tu contraseña?",
+     family = "segoe", cex = 3.0, col = "#e6edf3")
 
 # Medidor de fortaleza (barra de segmentos)
 seg <- 26
