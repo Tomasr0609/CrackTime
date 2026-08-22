@@ -1,16 +1,3 @@
-# =============================================================================
-# tests/test_app.R — Tests de la app (Fase 4)
-# Ejecutar: Rscript tests/test_app.R
-#
-# Estrategia:
-#  1) Lógica pura `calcular_resultado()` probada de forma síncrona con 8
-#     contraseñas variadas (evita las limitaciones de testServer con
-#     debounce/later).
-#  2) Un único testServer verifica que la reactividad conecta bien los outputs
-#     (patrón que se comporta estable).
-#  3) UI estática: type=password, mensaje de privacidad, toggle mostrar.
-# =============================================================================
-
 library(shiny)
 source("R/entropy.R"); source("R/patterns.R")
 source("R/suggestions.R"); source("R/fun_facts.R"); source("R/app.R")

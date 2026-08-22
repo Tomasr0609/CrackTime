@@ -78,6 +78,21 @@ sirve desde Vercel como sitio estático.
 Rscript tools/build-shinylive.R   # regenera docs/ (borra y exporta de cero)
 ```
 
+### Paso manual después del primer deploy (meta tags OG)
+
+Las meta tags `og:image`, `twitter:image` y `og:url` necesitan **URLs
+absolutas** para que los scrapers (LinkedIn, WhatsApp, X) resuelvan la imagen.
+El build las arma con la variable de entorno `SITE_URL`; si no está seteada,
+queda un placeholder. Después del primer deploy en Vercel:
+
+1. Copiar la URL real que asigna Vercel (ej. `https://pwtest-xyz.vercel.app`).
+2. Regenerar el build seteando `SITE_URL`:
+   - R: `Sys.setenv(SITE_URL = "https://<url-real>.vercel.app"); source("tools/build-shinylive.R")`
+   - o PowerShell: `$env:SITE_URL = "https://<url-real>.vercel.app"; Rscript tools/build-shinylive.R`
+3. Commitear y pushear el `docs/` actualizado.
+4. Verificar el preview con el debugger de Facebook (Sharing Debugger) o pegando
+   el link en un chat de prueba de LinkedIn.
+
 > **Por qué staging:** `shinylive::export()` empaqueta **todos** los archivos del
 > directorio origen. Si se exportara la raíz del repo, se incluiría `renv/`
 > (la biblioteca R, cientos de MB) en `app.json`. El script copia solo

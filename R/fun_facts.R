@@ -1,14 +1,5 @@
-# =============================================================================
-# fun_facts.R — Comparaciones curiosas según tiempo estimado (Fase 3)
-#
-# Mapea el tiempo de crackeo (segundos o log10) a una comparación memorable.
-# Tono: informal, con humor sutil, apto para LinkedIn. Se evitan catástrofes,
-# tragedias y referencias políticamente sensibles. Sin huecos: cubre desde
-# milisegundos hasta "más que la edad del universo".
-# =============================================================================
+#Tabla de hechos curiosos: cada fila es el límite SUPERIOR de log10(segundos)
 
-# Tabla de hechos curiosos: cada fila es el límite SUPERIOR de log10(segundos)
-# para esa comparación. `icono` = clase FontAwesome (FA6 free).
 .FUN_FACTS <- list(
   list(hasta = -3.00,   texto = "más rápido que un parpadeo — ni te vas a dar cuenta",
                         icono = "fa-bolt"),
@@ -48,9 +39,6 @@
                         icono = "fa-infinity")
 )
 
-#' Dato curioso para un tiempo estimado.
-#' `tiempo`: resultado de `tiempo_estimado()` (lista con `log10_segundos`) o un
-#' número en segundos. Devuelve lista(texto, icono, escala).
 dato_curioso <- function(tiempo) {
   log10_t <- if (is.list(tiempo)) tiempo$log10_segundos else log10(max(tiempo, 1e-320))
   if (is.na(log10_t)) {
@@ -63,12 +51,10 @@ dato_curioso <- function(tiempo) {
                   escala = .escala(log10_t)))
     }
   }
-  # fallback (nunca debería llegar acá: la última fila es Inf)
   list(texto = "más que la edad del universo", icono = "fa-infinity",
        escala = "universo")
 }
 
-# Etiqueta de escala (para posibles filtros/UI).
 .escala <- function(log10_t) {
   if (log10_t < 4.936) return("instantaneo")
   if (log10_t < 7.499) return("dias")

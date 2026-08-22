@@ -1,27 +1,11 @@
-# =============================================================================
-# patterns.R — Detección de patrones débiles / diccionario (Fase 2)
-#
-# Detección honesta de lo que hace "fuerte" o "débil" a una contraseña real:
+#Detección honesta de lo que hace "fuerte" o "débil" a una contraseña real:
 #   1. Secuencias de teclado (qwerty, asdfgh, qazwsx...)
 #   2. Secuencias numéricas/alfabéticas (1234, 9876, abcd, zyxw...)
 #   3. Repeticiones (aaaa, 1111, ...)
-#   4. Palabras de diccionario (top ~200 términos ES/EN embebidos),
-#      normalizando sustituciones leetspeak antes de comparar.
-#
-# La penalización se expresa en BITS (se resta a la entropía teórica):
-#   * repetición (r iguales):  (r - 1) * log2(charset)
-#   * secuencia (r consecutivos): r * log2(charset) - log2(100)
-#     (una secuencia equivale a elegir entre ~100 secuencias comunes)
-#   * palabra de diccionario (largo L): L * log2(charset) - log2(200)
-#     (una palabra equivale a elegir entre las top ~200 del listado)
-#   * leetspeak presente sin palabra de diccionario: +2 bits planos
-# Los patrones que se solapan no se penalizan dos veces (se marca cobertura).
-# =============================================================================
-
-# --- Diccionario embebido (top ~200 términos comunes ES/EN) -------------------
+#   4. Palabras de diccionario (top 200 términos ES/EN embebidos)
 
 .DICCIONARIO <- c(
-  # inglés (lista filtrada de breach datasets, top común)
+  #inglés
   "password", "123456", "123456789", "12345678", "12345", "qwerty",
   "abc123", "monkey", "dragon", "letmein", "trustno1", "baseball",
   "iloveyou", "master", "sunshine", "ashley", "bailey", "shadow",
@@ -35,7 +19,7 @@
   "password1", "password123", "iloveyou1", "football1", "passw0rd",
   "trustno", "amanda", "melissa", "jordan", "alexis", "samantha",
   "kevin", "brian", "nicole", "andrea", "dallas", "joshua", "nicolas",
-  # español
+  #español
   "contraseña", "clave", "hola", "hola123", "admin123", "teamo",
   "tequiero", "amor", "familia", "perro", "gato", "casa", "trabajo",
   "escuela", "universidad", "gracias", "amigos", "argentina", "mexico",
@@ -66,27 +50,24 @@
   "april", "june", "july", "september", "october", "november", "december"
 )
 
-# --- Sustituciones leetspeak comunes -------------------------------------------
-# Mapa de normalización: se aplica ANTES de chequear el diccionario.
+#Mapa de normalización: se aplica ANTES de chequear el diccionario
 .LEETSPEAK <- c("@" = "a", "4" = "a", "0" = "o", "3" = "e", "1" = "l",
                 "!" = "i", "|" = "i", "$" = "s", "5" = "s", "7" = "t",
                 "+" = "t", "2" = "z", "9" = "g", "8" = "b")
 
-# --- Filas de teclado y patrones verticales comunes ----------------------------
 .FILAS_TECLADO <- c("qwertyuiop", "asdfghjkl", "zxcvbnm")
 .PATRONES_TECLADO <- c("qazwsx", "edcrfv", "qwe", "asd", "zxc", "wasd",
                        "qaz", "wsx", "edc", "rfv", "tgb", "yhn", "ujm",
                        "ikol", "qweasdzxc", "poiuytrewq", "lkjhgfdsa",
                        "mnbvcxz")
 
-# Número estimado de secuencias comunes (para la penalización).
+#Número estimado de secuencias comunes (para la penalización)
 .LOG2_N_SECUENCIAS <- log2(100)
-# Tamaño del diccionario embebido (para la penalización).
+#Tamaño del diccionario embebido (para la penalización)
 .LOG2_N_DICCIONARIO <- log2(200)
 
-# --- Utilidades ---------------------------------------------------------------
 
-# Tamaño de charset por categoría (fallback local para uso standalone).
+#Tamaño de charset por categoría (fallback local para uso standalone)
 .charset_size_local <- function(password) {
   pw <- if (is.null(password) || is.na(password)) "" else as.character(password)
   chars <- strsplit(pw, "", fixed = TRUE)[[1]]
@@ -99,7 +80,7 @@
   size
 }
 
-# Normaliza una contraseña para comparación: minúsculas + leetspeak.
+#Normaliza una contraseña para comparación: minúsculas + leetspeak
 .normalizar_leetspeak <- function(password) {
   pw <- tolower(password)
   for (k in names(.LEETSPEAK)) {
@@ -108,7 +89,7 @@
   pw
 }
 
-# Runs maximales de un mismo carácter (largo >= 3).
+#Runs maximales de un mismo carácter (largo >= 3)
 .encontrar_repeticiones <- function(pw) {
   runs <- list()
   n <- nchar(pw)
@@ -129,12 +110,12 @@
   runs
 }
 
-# Runs consecutivos de dígitos (123, 9876) o letras (abc, zyx), ±1.
+#Runs consecutivos de dígitos (123, 9876) o letras (abc, zyx), ±1
 .encontrar_consecutivos <- function(pw, tipo) {
   chars <- strsplit(pw, "", fixed = TRUE)[[1]]
   if (length(chars) < 3L) return(list())
-  numeros <- suppressWarnings(as.integer(chars))  # NA si no es dígito
-  letras <- suppressWarnings(match(chars, letters))  # NA si no es minúscula
+  numeros <- suppressWarnings(as.integer(chars))
+  letras <- suppressWarnings(match(chars, letters))
   runs <- list()
   for (d in c(1L, -1L)) {
     i <- 1L
@@ -162,7 +143,7 @@
   runs
 }
 
-# Runs de teclado (subcadenas de filas, en ambos sentidos, largo >= 3).
+#Runs de teclado (subcadenas de filas, en ambos sentidos, largo >= 3)
 .encontrar_teclado <- function(pw) {
   runs <- list()
   .reversa <- function(s) paste(rev(strsplit(s, "", fixed = TRUE)[[1]]), collapse = "")
@@ -192,7 +173,6 @@
       }
     }
   }
-  # patrones verticales explícitos (subcadena directa)
   for (pat in .PATRONES_TECLADO) {
     m <- gregexpr(pat, pw, fixed = TRUE)[[1]]
     if (m[1] != -1L) {
@@ -210,13 +190,12 @@
   runs
 }
 
-# Palabras del diccionario encontradas como subcadenas (sobre la versión
-# normalizada). Devuelve matches (palabra, inicio, fin, largo).
+#Palabras del diccionario encontradas como subcadenas (sobre la versión
+#normalizada). Devuelve matches (palabra, inicio, fin, largo)
 .encontrar_diccionario <- function(pw_norm) {
   matches <- list()
   n <- nchar(pw_norm)
   if (n < 3L) return(matches)
-  # ventana deslizante de largo 3..n para encontrar subcadenas del diccionario
   for (largo in 3L:n) {
     if (largo > n) next
     for (i in seq_len(n - largo + 1L)) {
@@ -231,11 +210,8 @@
   matches
 }
 
-# --- Detector principal ---------------------------------------------------------
+#Detecta patrones débiles y devuelve la penalización en bits.
 
-#' Detecta patrones débiles y devuelve la penalización en bits.
-#' `charset_size` se usa para computar log2(charset); si no se pasa, se calcula
-#' con el fallback local (útil para correr este archivo de forma aislada).
 detectar_patrones <- function(password, charset_size = NULL) {
   pw_raw <- if (is.null(password) || is.na(password)) "" else as.character(password)
   if (nchar(pw_raw) == 0L) {
@@ -251,7 +227,6 @@ detectar_patrones <- function(password, charset_size = NULL) {
   pw_low <- tolower(pw_raw)
   pw_norm <- .normalizar_leetspeak(pw_raw)
 
-  # Detección
   reps <- .encontrar_repeticiones(pw_low)
   seqs_num <- .encontrar_consecutivos(pw_low, "numerica")
   seqs_alf <- .encontrar_consecutivos(pw_low, "alfabetica")
@@ -260,7 +235,7 @@ detectar_patrones <- function(password, charset_size = NULL) {
 
   dict_matches <- .encontrar_diccionario(pw_norm)
 
-  # Greedy por largo: quedarse con los matches de diccionario que no se solapan
+  #Greedy por largo: quedarse con los matches de diccionario que no se solapan
   dict_keep <- list()
   if (length(dict_matches) > 0L) {
     dict_matches <- dict_matches[order(sapply(dict_matches, `[[`, "largo"), decreasing = TRUE)]
@@ -275,9 +250,6 @@ detectar_patrones <- function(password, charset_size = NULL) {
     covered_dict <- rep(FALSE, n)
   }
 
-  # Leetspeak relevante solo si hay sustituciones DENTRO de una palabra del
-  # diccionario que se haya matcheado (normalizar 1->l, 2->z en "123456" o en
-  # una secuencia de teclado no es leetspeak real).
   if (length(dict_keep) > 0L) {
     letras_leet <- names(.LEETSPEAK)
     leetspeak <- any(vapply(dict_keep, function(m) {
@@ -289,12 +261,11 @@ detectar_patrones <- function(password, charset_size = NULL) {
     leetspeak <- FALSE
   }
 
-  # Penalización en bits (sin doble conteo por posición)
   penalizacion <- 0
   covered <- rep(FALSE, n)
   detalle <- character(0)
 
-  # 1) Diccionario
+  #1) Diccionario
   for (m in dict_keep) {
     rango <- m$inicio:m$fin
     if (any(covered[rango])) next
@@ -306,7 +277,7 @@ detectar_patrones <- function(password, charset_size = NULL) {
     detalle <- c(detalle, sprintf("diccionario: «%s»", m$palabra))
   }
 
-  # 2) Repeticiones
+  #2) Repeticiones
   for (r in reps) {
     rango <- r$inicio:r$fin
     if (any(covered[rango])) next
@@ -318,7 +289,7 @@ detectar_patrones <- function(password, charset_size = NULL) {
     detalle <- c(detalle, sprintf("repetición: «%s» (%d veces)", r$char, r$largo))
   }
 
-  # 3) Secuencias
+  #3) Secuencias
   for (s in secuencias) {
     rango <- s$inicio:s$fin
     if (any(covered[rango])) next
@@ -330,7 +301,7 @@ detectar_patrones <- function(password, charset_size = NULL) {
     detalle <- c(detalle, sprintf("secuencia %s: «%s»", s$subtipo, s$texto))
   }
 
-  # 4) Nota de leetspeak (la penalización ya la aplica el diccionario)
+  #4) Nota de leetspeak (la penalización ya la aplica el diccionario)
   if (leetspeak) {
     detalle <- c(detalle, "sustituciones leetspeak presentes")
   }

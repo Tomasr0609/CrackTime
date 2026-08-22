@@ -1,8 +1,3 @@
-# =============================================================================
-# tests/manual_tests_fase3.R — Casos de prueba manuales de la Fase 3
-# Ejecutar: Rscript tests/manual_tests_fase3.R
-# =============================================================================
-
 source("R/entropy.R")
 source("R/patterns.R")
 source("R/suggestions.R")

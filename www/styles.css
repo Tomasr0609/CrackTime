@@ -1,10 +1,3 @@
-/* =============================================================================
-   CrackTime — estilos custom (Fase 5)
-   Identidad: "laboratorio de seguridad" oscuro con acento menta neón.
-   Mobile-first: columna única centrada, max-width 640px.
-   ============================================================================= */
-
-/* --- Tipografías locales (sin descarga en runtime: webR no tiene curl) --- */
 @font-face {
   font-family: "Inter";
   font-style: normal;
@@ -292,6 +285,14 @@ html, body {
   color: var(--warning);
   border-color: rgba(255, 176, 32, 0.35);
 }
+/* Estado "no calculable" del panel de detalles (vacía / solo unicode) */
+.detalle-na {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-style: italic;
+}
 
 /* --- Dato curioso (tarjeta con ícono) --- */
 .tarjeta-dato {
@@ -310,6 +311,10 @@ html, body {
   align-items: center;
   justify-content: center;
   font-size: 1.3rem;
+}
+.dato-cuerpo {
+  flex: 1;
+  min-width: 0;
 }
 .dato-texto {
   font-family: "Space Grotesk", sans-serif;

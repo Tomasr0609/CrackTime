@@ -1,7 +1,3 @@
-// Shinylive 0.10.12
-// Copyright 2026 Posit, PBC
-
-// src/utils.ts
 function dirname(path) {
   if (path === "/" || path === "") {
     return "";

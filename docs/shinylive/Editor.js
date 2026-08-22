@@ -1,5 +1,3 @@
-// Shinylive 0.10.12
-// Copyright 2026 Posit, PBC
 import {
   Icon,
   appUrlPrefix,

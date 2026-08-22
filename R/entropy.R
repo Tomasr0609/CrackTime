@@ -1,52 +1,36 @@
-# =============================================================================
-# entropy.R — Lógica de cálculo de entropía y tiempo de crackeo (Fase 2)
-#
-# Diseño del modelo (documentado para mantener honestidad del resultado):
 #   * Entropía teórica:  bits = longitud * log2(charset_size)
 #   * Entropía ajustada: bits_teoricos - penalizacion_por_patrones
 #     (la penalización está definida en patterns.R)
 #   * Trabajo SIEMPRE en escala logarítmica (log2 bits / log10 segundos) para
 #     evitar overflow con contraseñas largas (charset^longitud no se calcula).
-#   * Velocidad de ataque default: 10^10 intentos/segundo (ver VELOCIDAD_DEFAULT).
-# =============================================================================
-
-# --- Constantes documentadas -------------------------------------------------
+#   * Velocidad de ataque default: 10^10 intentos/segundo.
 
 # Conjunto exacto de 32 símbolos comunes (26 del prompt + 6 complementarios:
 # ~ ` / \ " '). Orden y tamaño quedan fijados acá a propósito.
 .SIMBOLOS_COMUNES <- "!@#$%^&*()_+-=[]{}|;:,.<>?~`/\\\"'"
 
-# Tamaño de cada categoría de charset (RFC 4086 / práctica estándar).
 .TAM_MINUSCULAS <- 26L
 .TAM_MAYUSCULAS <- 26L
 .TAM_NUMEROS    <- 10L
 .TAM_SIMBOLOS   <- 32L
 
-# Velocidad de ataque asumida (intentos por segundo).
-# Justificación del default (10^10/s): ataque offline con GPU moderna sobre
-# hashes rápidos (ej. NTLM/MD5) — Hashcat benchmark documentado en ~10^10
-# hashes/s con un rig de varias RTX 4090 (ej. hashes.org / hashcat.net wiki,
-# 2024-2025). Es una cota razonable y conservadora: NO asume hashes dedicados
-# lentos (bcrypt/argon2 serían 10^5-10^6 veces más lentos).
+#Velocidad de ataque asumida (intentos por segundo).
+#Justificación del default (10^10/s): ataque offline con GPU moderna sobre
+#hashes rápidos (ej. NTLM/MD5) — Hashcat benchmark documentado en ~10^10
+#hashes/s con un rig de varias RTX 4090 (ej. hashes.org / hashcat.net wiki)
 VELOCIDAD_DEFAULT <- 1e10
 
-# Escenarios alternativos de hardware (para mostrar 2-3 resultados).
 VELOCIDADES_ATAQUE <- list(
-  online = 1e3,      # ataque online con rate-limit (~1k intentos/s)
-  gpu    = 1e10,     # ataque offline con GPU moderna (default)
-  cluster = 1e13     # cluster / cloud cracking masivo
+  online = 1e3,      #ataque online con rate-limit
+  gpu    = 1e10,     #ataque offline con GPU moderna
+  cluster = 1e13     #cluster / cloud cracking masivo
 )
 
-# Tope de bits para contraseñas que son esencialmente una palabra del
-# diccionario embebido (top ~200 términos): log2(200) ≈ 7.64 → 8 bits.
+#Tope de bits para contraseñas que son esencialmente una palabra del
+#diccionario embebido (top ~200 términos): log2(200) ≈ 7.64 → 8 bits.
 .LIMITE_BITS_DICCIONARIO <- 8
 
-# --- Charset ----------------------------------------------------------------
-
-#' Detecta el conjunto de caracteres usado por la contraseña.
-#' Devuelve lista con tamaño de charset, longitud y categorías detectadas.
-#' Los caracteres Unicode no contemplados se reportan aparte y NO suman al
-#' charset (no se asume un tamaño para ellos; ver `unicode_present`).
+#Charset
 calcular_charset <- function(password) {
   pw <- as.character(password %||% "")
   chars <- strsplit(pw, "", fixed = TRUE)[[1]]
@@ -75,12 +59,7 @@ calcular_charset <- function(password) {
   )
 }
 
-# --- Entropía ----------------------------------------------------------------
 
-#' Entropía teórica y ajustada por patrones.
-#' `entropia_ajustada_bits = entropia_teorica_bits - penalizacion_bits`.
-#' Para contraseñas de solo Unicode (charset 0) devuelve NA en la ajustada:
-#' no se puede estimar sin asumir un espacio de caracteres (honestidad > número).
 calcular_entropia <- function(password) {
   cs <- calcular_charset(password)
   if (cs$longitud == 0L) {
@@ -94,7 +73,6 @@ calcular_entropia <- function(password) {
     ))
   }
 
-  # Con solo Unicode, la matemática del charset no aplica (no asumimos tamaño).
   if (cs$charset_size == 0L) {
     return(list(
       longitud = cs$longitud, charset_size = 0L,
@@ -111,13 +89,11 @@ calcular_entropia <- function(password) {
 
   bits_efectivos <- max(bits_teoricos - patrones$penalizacion_bits, 0)
 
-  # Cobertura del diccionario: si la palabra cubre >= 50% de la contraseña,
-  # es "básicamente una palabra del diccionario" → tope honesto (log2(200)~8 bits).
+  #Cobertura del diccionario: si la palabra cubre >= 50% de la contraseña
   if (patrones$cobertura_diccionario >= 0.5) {
     bits_efectivos <- min(bits_efectivos, .LIMITE_BITS_DICCIONARIO)
   }
 
-  # Si hay Unicode mezclado, el resultado es una cota inferior conservadora.
   nota <- if (cs$unicode_present) {
     "cálculo conservador: los caracteres Unicode suman longitud pero no charset asumido"
   } else {
@@ -135,12 +111,8 @@ calcular_entropia <- function(password) {
   )
 }
 
-# --- Tiempo estimado ----------------------------------------------------------
+#Convierte entropía (bits) a tiempo de crackeo en segundos.
 
-#' Convierte entropía (bits) a tiempo de crackeo en segundos.
-#' Acepta un número (bits) o el resultado de `calcular_entropia()` (usa la
-#' entropía ajustada). Devuelve segundos (Inf si no entra en un double) más el
-#' valor en log10 para que el formateo siga siendo preciso.
 tiempo_estimado <- function(entropia, velocidad = VELOCIDAD_DEFAULT) {
   bits <- if (is.list(entropia)) entropia$entropia_ajustada_bits else entropia
   if (is.na(bits)) {
@@ -154,12 +126,7 @@ tiempo_estimado <- function(entropia, velocidad = VELOCIDAD_DEFAULT) {
        bits = bits, velocidad = velocidad, calculable = TRUE)
 }
 
-# --- Formateo de tiempo a lenguaje humano --------------------------------------
-
-#' Formatea segundos (o log10 de segundos) a una unidad legible en español.
-#' Unidades: instantáneo, segundos, minutos, horas, días, años, mil años,
-#' millones de años, mil millones de años y "más que la edad del universo".
-#' Edad del universo ≈ 13.800 millones de años = 4.354e17 s.
+#Formatea segundos (o log10 de segundos) a una unidad legible en español.
 formatear_tiempo <- function(segundos, log10_segundos = NULL) {
   if (!is.null(log10_segundos) && !is.na(log10_segundos)) {
     log10_t <- log10_segundos
@@ -171,12 +138,11 @@ formatear_tiempo <- function(segundos, log10_segundos = NULL) {
     return("más que la edad del universo")
   }
 
-  # Umbrales en log10(segundos)
   .SEC <- 0
   .MIN <- log10(60)
   .HOR <- log10(3600)
   .DIA <- log10(86400)
-  .ANY <- log10(31557600)          # año juliano
+  .ANY <- log10(31557600)          # 1 año = 365.25 días o año juliano
   .MIL <- log10(3.15576e10)        # 1000 años
   .MILL <- log10(3.15576e13)       # 1 millón de años
   .MMIL <- log10(3.15576e16)       # 1000 millones de años
@@ -209,8 +175,6 @@ formatear_tiempo <- function(segundos, log10_segundos = NULL) {
   if (unidad == "instantáneo") return("instantáneo")
   if (unidad == "más que la edad del universo") return("más que la edad del universo")
 
-  # Redondeo para absorber el ruido de punto flotante (10^log10 puede dar
-  # 0.9999999 en vez de 1).
   valor <- round(valor, 6)
 
   n <- .numero_es(if (unidad %in% c("mil años")) round(valor) else valor)
@@ -233,7 +197,7 @@ formatear_tiempo <- function(segundos, log10_segundos = NULL) {
   paste(n, nombre)
 }
 
-# Redondeo bonito: 2 cifras significativas, coma decimal, punto de miles.
+#Redondeo bonito: 2 cifras significativas, coma decimal, punto de miles.
 .numero_es <- function(x) {
   r <- signif(x, 2)
   if (r >= 100) return(formatC(round(r), format = "d", big.mark = ".", decimal.mark = ","))
@@ -242,7 +206,6 @@ formatear_tiempo <- function(segundos, log10_segundos = NULL) {
   sub("\\.", ",", formatC(r, format = "f", digits = dec, decimal.mark = ","))
 }
 
-# Operador %||% (evita depender de rlang). Tolera closure/NA sin warnings.
 `%||%` <- function(a, b) {
   if (is.null(a)) return(b)
   if (!is.atomic(a)) return(a)

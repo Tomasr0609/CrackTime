@@ -1,8 +1,3 @@
-# =============================================================================
-# tests/manual_tests.R — Casos de prueba manuales de la Fase 2
-# Ejecutar desde la raíz del proyecto:  Rscript tests/manual_tests.R
-# =============================================================================
-
 source("R/entropy.R")
 source("R/patterns.R")
 

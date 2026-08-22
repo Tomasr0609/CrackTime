@@ -1,23 +1,13 @@
-# =============================================================================
-# app.R — App Shiny principal de CrackTime (Fase 4)
-#
-# TODO el cálculo corre client-side: en Shinylive (WASM) no hay servidor de R.
-# La contraseña ingresada nunca sale del navegador (cero llamadas de red).
-#
-# NOTA de estructura: este archivo define `ui()` y `server()`. El archivo
-# `app.R` en la raíz del repo es el entrypoint que los lanza con
-# shiny::shinyApp(). Shiny/shinylive exigen app.R (o server.R) en la raíz del
-# directorio de la app, así que el código vive acá y el launcher en la raíz.
-# =============================================================================
+#NOTA de estructura: este archivo define `ui()` y `server()`. El archivo
+#app.R en la raíz del repo es el entrypoint que los lanza con
+#shiny::shinyApp(). Shiny/shinylive exigen app.R (o server.R) en la raíz del
+#directorio de la app, así que el código vive acá y el launcher en la raíz.
 
 source("R/entropy.R")
 source("R/patterns.R")
 source("R/suggestions.R")
 source("R/fun_facts.R")
 
-# --- Fortaleza (umbrales sobre la entropía AJUSTADA, no la teórica) -----------
-
-# Umbrales en bits: 0-34 débil, 35-59 media, 60-79 fuerte, >=80 muy fuerte.
 .UMBRAL_DEBIL  <- 35
 .UMBRAL_MEDIA  <- 60
 .UMBRAL_FUERTE <- 80
@@ -38,11 +28,6 @@ etiqueta_fortaleza <- function(bits) {
        pct = 100, color = "#00e5a0")
 }
 
-# --- Tema bslib (paleta definida en Fase 5) ------------------------------------
-
-# Tipografías embebidas localmente (www/fonts + @font-face en styles.css).
-# NO usar bslib::font_google(): webR no tiene curl/libcurl y el intento de
-# descarga en runtime rompe el render de la app.
 .tema <- bslib::bs_theme(
   version = 5,
   bg = "#0b0f14",
@@ -58,7 +43,7 @@ etiqueta_fortaleza <- function(bits) {
   code_font = bslib::font_collection("JetBrains Mono", "Consolas", "monospace")
 )
 
-# --- UI ------------------------------------------------------------------------
+#UI
 
 ui <- function() {
   bslib::page_fluid(
@@ -106,20 +91,17 @@ ui <- function() {
       ))
     ),
     div(class = "contenedor",
-      # Cabecera
       div(class = "cabecera",
         h1(class = "titulo", "CrackTime"),
         p(class = "subtitulo",
           "¿Cuánto tardaría una computadora en descifrar tu contraseña por fuerza bruta?")
       ),
 
-      # Banner de privacidad (siempre visible, arriba)
       div(class = "banner-privacidad",
         icon("lock"),
         span("Tu contraseña nunca se envía a ningún servidor, todo el cálculo
               ocurre en tu navegador de manera local. Es privado de verdad.")),
 
-      # Input
       div(class = "tarjeta",
         h2(class = "tarjeta-titulo", "Tu contraseña"),
         div(class = "fila-input",
@@ -127,8 +109,7 @@ ui <- function() {
             pw <- passwordInput("password", NULL,
                                 placeholder = "Escribí tu contraseña…",
                                 width = "100%")
-            # A11y: el label es NULL (el título del card cumple ese rol);
-            # el input lleva aria-label para lectores de pantalla.
+
             pw$children[[2]]$attribs[["aria-label"]] <- "Tu contraseña"
             pw
           })(),
@@ -141,13 +122,11 @@ ui <- function() {
         uiOutput("etiqueta_fortaleza")
       ),
 
-      # Resultado principal (hero)
       div(id = "panel-resultado", class = "tarjeta tarjeta-resultado",
         h2(class = "tarjeta-titulo", "Tiempo estimado de hackeo"),
         div(class = "hero-tiempo", textOutput("tiempo_hero", inline = TRUE)),
         div(class = "hero-nota", textOutput("tiempo_nota", inline = TRUE)),
 
-        # Escenario de ataque
         radioButtons("escenario", "Escenario de ataque",
           choiceNames = c("GPU moderna (offline)", "Ataque online (con límite)",
                           "Cluster / nube masiva"),
@@ -157,28 +136,24 @@ ui <- function() {
         div(class = "detalles-tecnicos", htmlOutput("detalles"))
       ),
 
-      # Dato curioso
       div(id = "panel-dato", class = "tarjeta tarjeta-dato",
-        div(class = "dato-icono", icon("lightbulb")),
+        div(class = "dato-icono", uiOutput("dato_icono", inline = TRUE)),
         div(class = "dato-cuerpo",
           h2(class = "tarjeta-titulo", "Para que te hagas una idea…"),
           div(class = "dato-texto", textOutput("dato_texto", inline = TRUE)))
       ),
 
-      # Sugerencias
       div(id = "panel-sugerencias", class = "tarjeta",
         h2(class = "tarjeta-titulo", "Cómo mejorarla"),
         uiOutput("sugerencias")
       ),
 
-      # Compartir
       div(class = "tarjeta compartir",
         actionButton("compartir", "Copiar resumen para compartir",
                      class = "btn-compartir", icon = icon("share-nodes")),
         div(class = "compartir-nota", textOutput("compartir_nota", inline = TRUE))
       ),
 
-      # Pie
       div(class = "pie",
         p("Estimación para fuerza bruta a 10^10 intentos/segundo (GPU moderna).
            No asume hashes lentos (bcrypt/argon2). Resultado educativo.")
@@ -187,9 +162,7 @@ ui <- function() {
   )
 }
 
-# --- Cálculo central (lógica pura, testeable sin Shiny) -------------------------
-# Devuelve el resultado completo para una contraseña y un escenario de ataque.
-# El server solo lo conecta a reactividad; esta función es síncrona y pura.
+
 calcular_resultado <- function(password, escenario = "gpu") {
   p <- password %||% ""
   if (nchar(p) == 0L) return(NULL)
@@ -207,36 +180,28 @@ calcular_resultado <- function(password, escenario = "gpu") {
   )
 }
 
-# --- Server ----------------------------------------------------------------------
+#Server
 
 server <- function(input, output, session) {
-  # Toggle mostrar/ocultar: el cambio de type es 100% client-side (ver JS en la
-  # UI). Acá solo se actualiza el texto del label vía el binding de Shiny.
   observeEvent(input$mostrar, {
     updateCheckboxInput(session, "mostrar",
                         label = if (input$mostrar) "Ocultar" else "Mostrar")
   })
 
-  # Reactividad en vivo con debounce (~200 ms).
-  # Se implementa con `later` en vez de shiny::debounce() porque el debounce
-  # nativo crea un dominio reactivo interno que rompe testServer() (y esta
-  # versión es testeable con later::run_now()).
   pw <- reactive({ input$password %||% "" })
   pw_deb <- reactiveVal("")
   .timer_debounce <- NULL
   observeEvent(pw(), {
-    if (!is.null(.timer_debounce)) .timer_debounce()  # later() devuelve una función de cancelación
+    if (!is.null(.timer_debounce)) .timer_debounce()  #later() devuelve una función de cancelación
     .timer_debounce <<- later::later(function() {
       isolate(pw_deb(pw()))
     }, 0.2)
   }, ignoreNULL = FALSE)
 
-  # Cálculo central (entropía + tiempo + sugerencias + dato)
   resultado <- reactive({
     calcular_resultado(pw_deb(), input$escenario)
   })
 
-  # Barra de fortaleza
   observe({
     r <- resultado()
     session$sendCustomMessage("estilo-fortaleza",
@@ -245,7 +210,6 @@ server <- function(input, output, session) {
                 color = r$fortaleza$color))
   })
 
-  # Fortaleza (texto)
   output$etiqueta_fortaleza <- renderUI({
     r <- resultado()
     if (is.null(r)) return(div(class = "fuerza-chip fuerza-na",
@@ -254,7 +218,6 @@ server <- function(input, output, session) {
         span(r$fortaleza$texto))
   })
 
-  # Tiempo hero
   output$tiempo_hero <- renderText({
     r <- resultado()
     if (is.null(r)) return("…")
@@ -268,7 +231,6 @@ server <- function(input, output, session) {
             r$entropia$longitud, input$escenario)
   })
 
-  # Detalles técnicos
   output$detalles <- renderUI({
     r <- resultado()
     if (is.null(r)) return(NULL)
@@ -285,7 +247,6 @@ server <- function(input, output, session) {
     )
   })
 
-  # Dato curioso
   output$dato_texto <- renderText({
     r <- resultado()
     if (is.null(r)) return("")
@@ -293,7 +254,13 @@ server <- function(input, output, session) {
   })
   outputOptions(output, "dato_texto", suspendWhenHidden = FALSE)
 
-  # Sugerencias
+  output$dato_icono <- renderUI({
+    r <- resultado()
+    if (is.null(r)) return(icon("lightbulb"))  #ícono default sin resultado
+    icon(sub("^fa-", "", r$dato$icono))
+  })
+  outputOptions(output, "dato_icono", suspendWhenHidden = FALSE)
+
   output$sugerencias <- renderUI({
     r <- resultado()
     if (is.null(r)) return(div(class = "sugerencia-vacia",
@@ -314,7 +281,6 @@ server <- function(input, output, session) {
     })
   })
 
-  # Compartir: resumen sin la contraseña
   observeEvent(input$compartir, {
     r <- resultado()
     if (is.null(r)) return(NULL)
@@ -327,11 +293,9 @@ server <- function(input, output, session) {
   })
   .timer_nota <- NULL
   observeEvent(input$copiado, {
-    # Cancelar el timer de una copia anterior (evita que un click rápido
-    # borre el mensaje antes de tiempo o se acumulen timers).
     if (!is.null(.timer_nota)) .timer_nota()
     output$compartir_nota <- renderText("¡Resumen copiado! Pegalo donde quieras.")
-    # El mensaje desaparece solo después de 2 segundos.
+    #El mensaje después de 2 segundos se va.
     .timer_nota <<- later::later(function() {
       output$compartir_nota <- renderText("")
     }, delay = 2)
