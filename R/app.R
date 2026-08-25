@@ -285,7 +285,7 @@ server <- function(input, output, session) {
     r <- resultado()
     if (is.null(r)) return(NULL)
     resumen <- sprintf(
-      "CrackTime: mi contraseña tardaría %s en descifrarse (según un ataque por fuerza bruta con GPU, %d caracteres). Dato: %s. ¿Cuánto tarda la tuya?",
+      "CrackTime: mi contraseña tardaría %s en descifrarse (según un ataque por fuerza bruta con GPU, %d caracteres). Dato: %s. ¿Cuánto tarda la tuya? Probalo acá: https://crack-time.vercel.app/",
       formatear_tiempo(r$tiempo$segundos, r$tiempo$log10_segundos),
       r$entropia$longitud, r$dato$texto
     )
