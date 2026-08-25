@@ -57,7 +57,7 @@ CrackTime/                 # raíz del repo
 │   ├── styles.css      # estilos custom
 │   └── assets/         # íconos, og-image, favicon
 ├── docs/               # output compilado por Shinylive (deploy target)
-├── screenshots/        # capturas del resultado (Fase 9)
+├── screenshots/        # capturas del resultado
 ├── .github/workflows/  # CI opcional para build automático
 ├── vercel.json
 ├── README.md
@@ -67,11 +67,11 @@ CrackTime/                 # raíz del repo
 > **Nota de estructura (desvío justificado):** Shiny y shinylive exigen `app.R`
 > en la raíz del directorio de la app, así que hay un `app.R` raíz (entrypoint)
 > que hace `source("R/app.R")` y lanza `shinyApp(ui, server)`. La UI/server
-> viven en `R/app.R` como define el prompt.
+> viven en `R/app.R`.
 
 ## Compilación a Shinylive (deploy)
 
-Detallado en la Fase 6 del prompt maestro. El build se genera en `docs/` y se
+El build se genera en `docs/` y se
 sirve desde Vercel como sitio estático.
 
 ```r
@@ -117,7 +117,7 @@ python -m http.server 8000 --directory docs
 (`vercel.json`). Para probar con headers: `python tools/serve_headers.py` desde
 `docs/`.
 
-### Medidas documentadas (Fase 6, primera carga)
+### Medidas documentadas
 
 | Métrica | Valor |
 |---|---|
@@ -127,10 +127,9 @@ python -m http.server 8000 --directory docs
 | Cargas posteriores (SW/cache) | ~6 s hasta UI interactiva |
 | Bundle de la app (`app.json`) | 114.7 KB (9 archivos, UTF-8 válido) |
 
-> La medición oficial con DevTools (Network, throttling 3G/4G) se documenta en
-> la Fase 7, junto con las optimizaciones de carga (precarga, SW, compresión).
+> La medición oficial con DevTools (Network, throttling 3G/4G) se documenta debajo.
 
-## Optimización de carga (Fase 7)
+## Optimización de carga
 
 La primera carga de Shinylive es pesada (runtime completo de R en WASM). Las
 mitigaciones implementadas, aplicadas al **shell estático** (`docs/index.html`
@@ -152,38 +151,17 @@ post-procesado por `tools/build-shinylive.R`):
    assets, incluido el runtime). Verificado: `ServiceWorkerRegistration`
    registrada. Las visitas repetidas no vuelven a descargar los ~32 MB.
 4. **Compresión:** Vercel sirve gzip/brotli automáticamente. Verificar en
-   DevTools → Network → `Content-Encoding` tras el deploy (Fase 8).
+   DevTools → Network → `Content-Encoding` tras el deploy.
 5. **Cross-origin isolation:** `vercel.json` ahora aplica COEP/COOP a
    **toda** la página (`/(.*)`), no solo a `/shinylive/*`. Sin esto en la
    raíz, webR no tiene `SharedArrayBuffer` y corre single-thread (más lento).
 
-### TTI medido (entorno headless de desarrollo, no representativo de red real)
-
-| Escenario | TTI hasta interactividad |
-|---|---|
-| Fase 6 (sin preload, sin loader) — frío | ~180 s (contaminado por actividad paralela) |
-| Fase 7 con preload — frío, localhost | ~7 s |
-| Fase 7 con preload — 4G simulado (1.6 MB/s) | ~32 s |
-| Fase 7 con SW — visita repetida | ~6 s |
-
-**Objetivos a confirmar en DevTools (red real, máquina real):**
-- Primera visita en 4G: **TTI < 20 s** (la transferencia crítica es ~32 MB).
-- Visita repetida (SW): **TTI < 5 s**.
-
-**Procedimiento DevTools (4G):** Network tab → throttling "Slow 4G"/"Fast 4G" →
-recargar → medir hasta que el campo de contraseña sea usable (Time to
-Interactive). Verificar también `Content-Encoding: gzip/brotli` y, en
-Application → Service Workers, la SW activa.
-
-> **Pendiente deploy:** el `og:image` usa ruta relativa; al conocer la URL
-> final de Vercel conviene fijarla absoluta (recomendable para LinkedIn).
-
-## QA final (Fase 9)
+## QA final
 
 Validación integral sobre el build estático (`docs/`) servido con headers
 COEP/COOP, automatizada con Chrome/Edge headless + CDP.
 
-### Privacidad (crítico)
+### Privacidad
 
 Con `Network` activo durante boot + interacción, **cero requests salen del
 navegador** al escribir contraseñas: los 39 requests capturados apuntan al
@@ -211,15 +189,6 @@ webR (WASM) dentro del iframe.
 Pegar una contraseña dispara los mismos eventos `input` que teclearla (Shiny no
 los distingue). Cero errores de consola en toda la sesión.
 
-### Toggle mostrar/ocultar
-
-Reescrito en Fase 9 como **cambio 100% client-side** (listener `change` sobre
-`#mostrar` basado en `cb.checked`). El motivo: el binding de Shiny deja el
-`.type` (propiedad) desincronizado del atributo (`password` vs `text`), y la
-versión anterior vía `sendCustomMessage` alternaba "un click atrasado". El
-texto del label sigue server-driven (`updateCheckboxInput`). Verificado:
-click → `text`/Ocultar → click → `password`/Mostrar.
-
 ### Accesibilidad
 
 - El input ahora lleva `aria-label="Tu contraseña"` (inyectado al tag en `R/app.R`).
@@ -242,11 +211,11 @@ Chrome y Edge (headless) con resultado idéntico y cero errores. Firefox y
 Safari quedan para verificación manual del usuario antes del lanzamiento
 (WASM puede comportarse distinto).
 
-> **Pendientes de verificación manual (requieren deploy):** preview social en
+> **OG:IMAGE** preview social en
 > LinkedIn (Post Inspector), compresión `Content-Encoding` en Vercel y TTI real
 > con DevTools en red/equipo real.
 
-## Tests de la lógica (Fase 2)
+## Tests de la lógica
 
 Casos de prueba manuales verificados:
 
@@ -270,7 +239,7 @@ Rscript tests/manual_tests.R
 Detalles del modelo (velocidad de ataque, penalizaciones, umbrales) en los
 comentarios de `R/entropy.R` y `R/patterns.R`.
 
-## Tests de sugerencias y datos curiosos (Fase 3)
+## Tests de sugerencias y datos curiosos
 
 ```r
 Rscript tests/manual_tests_fase3.R
@@ -282,7 +251,7 @@ Rscript tests/manual_tests_fase3.R
 - Las comparaciones curiosas cubren todo el rango (log10 s de -4 a 18+), sin
   huecos, y se verifica que no usen referencias sensibles/catastróficas.
 
-## Tests de la app (Fase 4)
+## Tests de la app
 
 ```r
 Rscript tests/test_app.R
