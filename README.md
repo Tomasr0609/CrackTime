@@ -1,4 +1,4 @@
-# CrackTime (PWTest)
+# CrackTime
 
 Herramienta interactiva que estima en tiempo real cuánto tardaría una computadora
 en descifrar una contraseña por fuerza bruta / ataque de diccionario.
@@ -44,7 +44,7 @@ shiny::runApp("R/app.R")
 ## Estructura
 
 ```
-PWTest/                 # raíz del repo (el prompt maestro la llama "pwtest")
+CrackTime/                 # raíz del repo
 ├── app.R               # entrypoint: lanza la app (requerido por Shiny/Shinylive)
 ├── R/
 │   ├── entropy.R       # lógica de cálculo de entropía y tiempo de crackeo
@@ -85,7 +85,7 @@ absolutas** para que los scrapers (LinkedIn, WhatsApp, X) resuelvan la imagen.
 El build las arma con la variable de entorno `SITE_URL`; si no está seteada,
 queda un placeholder. Después del primer deploy en Vercel:
 
-1. Copiar la URL real que asigna Vercel (ej. `https://pwtest-xyz.vercel.app`).
+1. Copiar la URL real que asigna Vercel (ej. `https://cracktime-xyz.vercel.app`).
 2. Regenerar el build seteando `SITE_URL`:
    - R: `Sys.setenv(SITE_URL = "https://<url-real>.vercel.app"); source("tools/build-shinylive.R")`
    - o PowerShell: `$env:SITE_URL = "https://<url-real>.vercel.app"; Rscript tools/build-shinylive.R`
