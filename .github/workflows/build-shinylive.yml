@@ -32,6 +32,8 @@ jobs:
         run: Rscript -e 'install.packages("renv"); renv::restore()'
 
       - name: Build Shinylive export
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
         run: Rscript tools/build-shinylive.R
 
       - name: Commit build
